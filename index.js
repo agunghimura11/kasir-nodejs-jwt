@@ -24,12 +24,6 @@ const app = express()
 app.use(morgan('dev'))
 app.use(express.json())
 
-app.get('/', (req,res) => {
-    res.json({
-        message: 'success',
-    })
-})
-
 app.use('/api/user', userRouter) //call router for user auth
 
 app.listen(process.env.PORT, () => {

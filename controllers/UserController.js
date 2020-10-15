@@ -18,7 +18,7 @@ var userRouter = express.Router()
 userRouter.post('/register', function (req, res) {
     try {
         var hashedPassword = bcrypt.hashSync(req.body.password, 8)
-
+        console.log(req.body)
         User.create({
             username: req.body.username,
             lastname: req.body.lastname,
@@ -26,7 +26,7 @@ userRouter.post('/register', function (req, res) {
             role : req.body.role,
         },
         function (err, user) {
-            if(err) return res.status(500).send("There was a problem registering the user.")
+            if(err) throw(err)
 
             var accessToken = jwt.sign({ id: user._id }, Conf.secret, {
                 // 1 menit -> 60 second, 20 menit -> 1200 second
@@ -46,7 +46,7 @@ userRouter.post('/register', function (req, res) {
 })
 
 async function validatePassword(plainPassword, hashedPassword) {
-return await bcrypt.compare(plainPassword, hashedPassword);
+    return await bcrypt.compare(plainPassword, hashedPassword);
 }
 
 userRouter.post('/login', async function (req, res, next) {
@@ -78,6 +78,37 @@ userRouter.post('/login', async function (req, res, next) {
     } catch (error) {
         throw(error)
     }
+})
+//validateToken(req.headers)
+async function validateToken(header){
+    const token = header['x-access-token']
+    return await jwt.verify(token, Conf.secret)
+}
+
+import roles from './../roles.js'
+// get all user
+userRouter.get('/', async (req, res) => {
+    // find all data in db
+    const validToken = await validateToken(req.headers);
+    if (!validToken) throw(validToken)
+    
+    const permission = roles.can(req.body.role).readAny('video');
+    if(permission.granted){
+        const user = await User.find({})
+
+        if(user){
+            res.json(user)
+        } else {
+            res.status(404).json({
+                message: "User not found"
+            })
+        }
+    }else{
+        res.status(404).json({
+            message: "Access denied"
+        })
+    }
+    
 })
 
 export default userRouter
