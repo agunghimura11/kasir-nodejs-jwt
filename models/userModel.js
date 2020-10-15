@@ -1,4 +1,4 @@
-import mongoose, { mongo } from 'mongoose'
+import mongoose from 'mongoose'
 
 const userSchema = mongoose.Schema (
     {
@@ -16,10 +16,10 @@ const userSchema = mongoose.Schema (
         },
         role : {
             type : String,
-            default : '0',
-            enum: ['0', '1', '2']
+            default : 'user',
+            enum: ['user', 'kasir', 'bos']
         },
-        accessToker : {
+        accessToken : {
             type : String
         }
 
